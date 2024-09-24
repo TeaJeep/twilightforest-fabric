@@ -1,19 +1,16 @@
 package twilightforest.data.tags;
 
-import me.alphamode.forgetags.Tags;
+import io.github.fabricators_of_create.porting_lib.tags.Tags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import twilightforest.TwilightForestMod;
 import twilightforest.init.TFBlocks;
 import twilightforest.init.TFItems;
@@ -52,8 +49,9 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 	public static final TagKey<Item> STORAGE_BLOCKS_KNIGHTMETAL = TagKey.create(Registries.ITEM, new ResourceLocation("c", "knightmetal_storage_blocks"));
 	public static final TagKey<Item> STORAGE_BLOCKS_STEELEAF = TagKey.create(Registries.ITEM, new ResourceLocation("c", "steeleaf_storage_blocks"));
 
-	public static final TagKey<Item> ORES_IRONWOOD = TagKey.create(Registries.ITEM, new ResourceLocation("c", "ironwood_ores"));
-	public static final TagKey<Item> ORES_KNIGHTMETAL = TagKey.create(Registries.ITEM, new ResourceLocation("c", "knightmetal_ores"));
+	// FIXME PORT 1.20: which tag?
+	public static final TagKey<Item> RAW_MATERIALS_IRONWOOD = ItemTags.create(new ResourceLocation("forge", "raw_materials/ironwood"));
+	public static final TagKey<Item> RAW_MATERIALS_KNIGHTMETAL = ItemTags.create(new ResourceLocation("forge", "raw_materials/knightmetal"));
 
 	public static final TagKey<Item> PORTAL_ACTIVATOR = TagKey.create(Registries.ITEM, TwilightForestMod.prefix("portal_activators"));
 
@@ -71,6 +69,12 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 	private static final TagKey<Item> BELTS = TagKey.create(Registries.ITEM, new ResourceLocation("trinkets", "legs/belt"));
 	private static final TagKey<Item> NECKLACES = TagKey.create(Registries.ITEM, new ResourceLocation("trinkets", "chest/necklace"));
 	private static final TagKey<Item> HATS = TagKey.create(Registries.ITEM, new ResourceLocation("trinkets", "head/hat"));
+
+	public static final TagKey<Item> CA_PLANTS = TagKey.create(Registries.ITEM, new ResourceLocation("createaddition", "plants"));
+	public static final TagKey<Item> CA_PLANT_FOODS = TagKey.create(Registries.ITEM, new ResourceLocation("createaddition", "plant_foods"));
+
+	public static final TagKey<Item> RANDOMIUM_BLACKLIST = TagKey.create(Registries.ITEM, new ResourceLocation("randomium", "blacklist"));
+
 
 	public ItemTagGenerator(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> future, FabricTagProvider.BlockTagProvider provider) {
 		super(output, future, provider);
@@ -114,10 +118,8 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 
 		this.copy(BlockTags.WOODEN_TRAPDOORS, ItemTags.WOODEN_TRAPDOORS);
 		this.copy(BlockTags.WOODEN_DOORS, ItemTags.WOODEN_DOORS);
-		getOrCreateTagBuilder(ItemTags.SIGNS).add(TFBlocks.TWILIGHT_OAK_SIGN.get().asItem(), TFBlocks.CANOPY_SIGN.get().asItem(),
-				TFBlocks.MANGROVE_SIGN.get().asItem(), TFBlocks.DARKWOOD_SIGN.get().asItem(),
-				TFBlocks.TIME_SIGN.get().asItem(), TFBlocks.TRANSFORMATION_SIGN.get().asItem(),
-				TFBlocks.MINING_SIGN.get().asItem(), TFBlocks.SORTING_SIGN.get().asItem());
+		this.copy(BlockTags.CEILING_HANGING_SIGNS, ItemTags.HANGING_SIGNS);
+		this.copy(BlockTags.STANDING_SIGNS, ItemTags.SIGNS);
 
 		this.copy(Tags.Blocks.CHESTS_WOODEN, Tags.Items.CHESTS_WOODEN);
 
@@ -132,11 +134,6 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 				.addTag(STORAGE_BLOCKS_FIERY).addTag(STORAGE_BLOCKS_ARCTIC_FUR)
 				.addTag(STORAGE_BLOCKS_CARMINITE).addTag(STORAGE_BLOCKS_IRONWOOD)
 				.addTag(STORAGE_BLOCKS_KNIGHTMETAL).addTag(STORAGE_BLOCKS_STEELEAF);
-
-		this.copy(BlockTagGenerator.ORES_IRONWOOD, ORES_IRONWOOD);
-		this.copy(BlockTagGenerator.ORES_KNIGHTMETAL, ORES_KNIGHTMETAL);
-
-		tag(Tags.Items.ORES).addTag(ORES_IRONWOOD).addTag(ORES_KNIGHTMETAL);
 
 		this.copy(BlockTagGenerator.TOWERWOOD, TOWERWOOD);
 
@@ -158,21 +155,22 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 				.addTag(IRONWOOD_INGOTS).addTag(FIERY_INGOTS)
 				.addTag(KNIGHTMETAL_INGOTS).addTag(STEELEAF_INGOTS);
 
-		getOrCreateTagBuilder(ORES_IRONWOOD).add(TFItems.RAW_IRONWOOD.get());
-		getOrCreateTagBuilder(ORES_KNIGHTMETAL).add(TFItems.ARMOR_SHARD_CLUSTER.get());
+		getOrCreateTagBuilder(RAW_MATERIALS_IRONWOOD).add(TFItems.RAW_IRONWOOD.get());
+		getOrCreateTagBuilder(RAW_MATERIALS_KNIGHTMETAL).add(TFItems.ARMOR_SHARD_CLUSTER.get());
+		tag(Tags.Items.RAW_MATERIALS).addTag(RAW_MATERIALS_IRONWOOD).addTag(RAW_MATERIALS_KNIGHTMETAL);
 
 		getOrCreateTagBuilder(PORTAL_ACTIVATOR).forceAddTag(Tags.Items.GEMS_DIAMOND);
 
 		getOrCreateTagBuilder(ItemTags.BOATS).add(
 				TFItems.TWILIGHT_OAK_BOAT.get(), TFItems.CANOPY_BOAT.get(), 
-				TFItems.MANGROVE_BOAT.get(), TFItems.DARKWOOD_BOAT.get(), 
+				TFItems.MANGROVE_BOAT.get(), TFItems.DARK_BOAT.get(),
 				TFItems.TIME_BOAT.get(), TFItems.TRANSFORMATION_BOAT.get(), 
 				TFItems.MINING_BOAT.get(), TFItems.SORTING_BOAT.get()
 		);
 
 		getOrCreateTagBuilder(ItemTags.CHEST_BOATS).add(
 				TFItems.TWILIGHT_OAK_CHEST_BOAT.get(), TFItems.CANOPY_CHEST_BOAT.get(),
-				TFItems.MANGROVE_CHEST_BOAT.get(), TFItems.DARKWOOD_CHEST_BOAT.get(),
+				TFItems.MANGROVE_CHEST_BOAT.get(), TFItems.DARK_CHEST_BOAT.get(),
 				TFItems.TIME_CHEST_BOAT.get(), TFItems.TRANSFORMATION_CHEST_BOAT.get(),
 				TFItems.MINING_CHEST_BOAT.get(), TFItems.SORTING_CHEST_BOAT.get()
 		);
@@ -197,7 +195,9 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 				TFBlocks.CANDELABRA.get().asItem(),
 				TFItems.BRITTLE_FLASK.get(),
 				TFItems.GREATER_FLASK.get(),
-				TFItems.CUBE_OF_ANNIHILATION.get()
+				TFItems.CUBE_OF_ANNIHILATION.get(),
+				TFBlocks.WROUGHT_IRON_FENCE.get().asItem(),
+				TFBlocks.WROUGHT_IRON_FINIAL.get().asItem()
 		);
 
 		getOrCreateTagBuilder(NYI).add(
@@ -209,9 +209,8 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 				TFBlocks.LICH_TOWER_MINIATURE_STRUCTURE.get().asItem(),
 				TFBlocks.AURORALIZED_GLASS.get().asItem(),
 				TFBlocks.SLIDER.get().asItem(),
-				TFBlocks.TWISTED_STONE.get().asItem(),
-				TFBlocks.TWISTED_STONE_PILLAR.get().asItem(),
-				TFItems.ORE_METER.get()
+				TFItems.ORE_METER.get(),
+				TFItems.MAGIC_PAINTING.get()
 		);
 
 		getOrCreateTagBuilder(KOBOLD_PACIFICATION_BREADS).add(Items.BREAD);
@@ -252,30 +251,40 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 		);
 
 		getOrCreateTagBuilder(HATS).add(
-				TFBlocks.NAGA_TROPHY.get().asItem(),
-				TFBlocks.LICH_TROPHY.get().asItem(),
-				TFBlocks.MINOSHROOM_TROPHY.get().asItem(),
-				TFBlocks.HYDRA_TROPHY.get().asItem(),
-				TFBlocks.KNIGHT_PHANTOM_TROPHY.get().asItem(),
-				TFBlocks.UR_GHAST_TROPHY.get().asItem(),
-				TFBlocks.ALPHA_YETI_TROPHY.get().asItem(),
-				TFBlocks.SNOW_QUEEN_TROPHY.get().asItem(),
-				TFBlocks.QUEST_RAM_TROPHY.get().asItem(),
-				TFBlocks.CICADA.get().asItem(),
-				TFBlocks.FIREFLY.get().asItem(),
-				TFBlocks.MOONWORM.get().asItem(),
-				TFBlocks.CREEPER_SKULL_CANDLE.get().asItem(),
-				TFBlocks.PLAYER_SKULL_CANDLE.get().asItem(),
-				TFBlocks.SKELETON_SKULL_CANDLE.get().asItem(),
-				TFBlocks.WITHER_SKELE_SKULL_CANDLE.get().asItem(),
-				TFBlocks.ZOMBIE_SKULL_CANDLE.get().asItem());
+				TFItems.NAGA_TROPHY.get(),
+				TFItems.LICH_TROPHY.get(),
+				TFItems.MINOSHROOM_TROPHY.get(),
+				TFItems.HYDRA_TROPHY.get(),
+				TFItems.KNIGHT_PHANTOM_TROPHY.get(),
+				TFItems.UR_GHAST_TROPHY.get(),
+				TFItems.ALPHA_YETI_TROPHY.get(),
+				TFItems.SNOW_QUEEN_TROPHY.get(),
+				TFItems.QUEST_RAM_TROPHY.get(),
+				TFItems.CICADA.get(),
+				TFItems.FIREFLY.get(),
+				TFItems.MOONWORM.get(),
+				TFItems.CREEPER_SKULL_CANDLE.get(),
+				TFItems.PIGLIN_SKULL_CANDLE.get(),
+				TFItems.PLAYER_SKULL_CANDLE.get(),
+				TFItems.SKELETON_SKULL_CANDLE.get(),
+				TFItems.WITHER_SKELETON_SKULL_CANDLE.get(),
+				TFItems.ZOMBIE_SKULL_CANDLE.get());
 
 		getOrCreateTagBuilder(Tags.Items.HEADS).add(
-				TFBlocks.ZOMBIE_SKULL_CANDLE.get().asItem(),
-				TFBlocks.SKELETON_SKULL_CANDLE.get().asItem(),
-				TFBlocks.WITHER_SKELE_SKULL_CANDLE.get().asItem(),
-				TFBlocks.CREEPER_SKULL_CANDLE.get().asItem(),
-				TFBlocks.PLAYER_SKULL_CANDLE.get().asItem());
+				TFItems.ZOMBIE_SKULL_CANDLE.get(),
+				TFItems.SKELETON_SKULL_CANDLE.get(),
+				TFItems.WITHER_SKELETON_SKULL_CANDLE.get(),
+				TFItems.CREEPER_SKULL_CANDLE.get(),
+				TFItems.PLAYER_SKULL_CANDLE.get(),
+				TFItems.PIGLIN_SKULL_CANDLE.get());
+
+		getOrCreateTagBuilder(ItemTags.NOTE_BLOCK_TOP_INSTRUMENTS).add(
+				TFItems.ZOMBIE_SKULL_CANDLE.get(),
+				TFItems.SKELETON_SKULL_CANDLE.get(),
+				TFItems.WITHER_SKELETON_SKULL_CANDLE.get(),
+				TFItems.CREEPER_SKULL_CANDLE.get(),
+				TFItems.PLAYER_SKULL_CANDLE.get(),
+				TFItems.PIGLIN_SKULL_CANDLE.get());
 
 		getOrCreateTagBuilder(Tags.Items.ARMORS_HELMETS).add(
 				TFItems.IRONWOOD_HELMET.get(),
@@ -326,6 +335,7 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 				TFItems.IRONWOOD_PICKAXE.get(),
 				TFItems.STEELEAF_PICKAXE.get(),
 				TFItems.KNIGHTMETAL_PICKAXE.get(),
+				TFItems.MAZEBREAKER_PICKAXE.get(),
 				TFItems.FIERY_PICKAXE.get(),
 				TFItems.GIANT_PICKAXE.get());
 
@@ -335,19 +345,53 @@ public class ItemTagGenerator extends FabricTagProvider.ItemTagProvider {
 		getOrCreateTagBuilder(Tags.Items.TOOLS_SHIELDS).add(TFItems.KNIGHTMETAL_SHIELD.get());
 		getOrCreateTagBuilder(Tags.Items.TOOLS_BOWS).add(TFItems.TRIPLE_BOW.get(), TFItems.SEEKER_BOW.get(), TFItems.ICE_BOW.get(), TFItems.ENDER_BOW.get());
 
+		getOrCreateTagBuilder(ItemTags.CLUSTER_MAX_HARVESTABLES).add(
+				TFItems.IRONWOOD_PICKAXE.get(),
+				TFItems.STEELEAF_PICKAXE.get(),
+				TFItems.KNIGHTMETAL_PICKAXE.get(),
+				TFItems.MAZEBREAKER_PICKAXE.get(),
+				TFItems.FIERY_PICKAXE.get(),
+				TFItems.GIANT_PICKAXE.get());
+
 		getOrCreateTagBuilder(ItemTags.SMALL_FLOWERS).add(TFBlocks.THORN_ROSE.get().asItem());
 
-		//saved for 1.20
-//		tag(ItemTags.TRIMMABLE_ARMOR)
-//				.add(TFItems.IRONWOOD_HELMET.get(), TFItems.IRONWOOD_CHESTPLATE.get(), TFItems.IRONWOOD_LEGGINGS.get(), TFItems.IRONWOOD_BOOTS.get())
-//				.add(TFItems.STEELEAF_HELMET.get(), TFItems.STEELEAF_CHESTPLATE.get(), TFItems.STEELEAF_LEGGINGS.get(), TFItems.STEELEAF_BOOTS.get())
-//				.add(TFItems.KNIGHTMETAL_HELMET.get(), TFItems.KNIGHTMETAL_CHESTPLATE.get(), TFItems.KNIGHTMETAL_LEGGINGS.get(), TFItems.KNIGHTMETAL_BOOTS.get())
-//				.add(TFItems.ARCTIC_HELMET.get(), TFItems.ARCTIC_CHESTPLATE.get(), TFItems.ARCTIC_LEGGINGS.get(), TFItems.ARCTIC_BOOTS.get())
-//				.add(TFItems.YETI_HELMET.get(), TFItems.YETI_CHESTPLATE.get(), TFItems.YETI_LEGGINGS.get(), TFItems.YETI_BOOTS.get())
-//				.add(TFItems.FIERY_HELMET.get(), TFItems.FIERY_CHESTPLATE.get(), TFItems.FIERY_LEGGINGS.get(), TFItems.FIERY_BOOTS.get())
-//				.add(TFItems.PHANTOM_HELMET.get(), TFItems.PHANTOM_CHESTPLATE.get(), TFItems.NAGA_CHESTPLATE.get(), TFItems.NAGA_LEGGINGS.get());
-//
-//		tag(ItemTags.TRIM_MATERIALS).add(TFItems.IRONWOOD_INGOT.get(), TFItems.STEELEAF_INGOT.get(), TFItems.KNIGHTMETAL_INGOT.get(), TFItems.NAGA_SCALE.get(), TFItems.CARMINITE.get(), TFItems.FIERY_INGOT.get());
+		getOrCreateTagBuilder(CA_PLANT_FOODS).add(TFItems.TORCHBERRIES.get());
+
+		getOrCreateTagBuilder(CA_PLANTS).add(TFItems.LIVEROOT.get(), TFItems.MAGIC_BEANS.get(),
+				TFBlocks.HUGE_WATER_LILY.get().asItem(), TFBlocks.HUGE_LILY_PAD.get().asItem(),
+				TFBlocks.TROLLVIDR.get().asItem(), TFBlocks.UNRIPE_TROLLBER.get().asItem(),
+				TFBlocks.TROLLBER.get().asItem(), TFBlocks.HUGE_STALK.get().asItem(),
+				TFBlocks.THORN_ROSE.get().asItem(), TFBlocks.MAYAPPLE.get().asItem(),
+				TFBlocks.CLOVER_PATCH.get().asItem(), TFBlocks.FIDDLEHEAD.get().asItem(),
+				TFBlocks.MUSHGLOOM.get().asItem(), TFBlocks.TORCHBERRY_PLANT.get().asItem(),
+				TFBlocks.ROOT_STRAND.get().asItem(), TFBlocks.FALLEN_LEAVES.get().asItem(),
+				TFBlocks.HEDGE.get().asItem(), TFBlocks.ROOT_BLOCK.get().asItem(), TFBlocks.LIVEROOT_BLOCK.get().asItem());
+
+		getOrCreateTagBuilder(RANDOMIUM_BLACKLIST).addTag(NYI).addTag(WIP).add(TFItems.GLASS_SWORD.get(), //this one is here because the ore can give the unbreakable one
+				TFBlocks.TIME_LOG_CORE.get().asItem(), TFBlocks.TRANSFORMATION_LOG_CORE.get().asItem(),
+				TFBlocks.MINING_LOG_CORE.get().asItem(), TFBlocks.SORTING_LOG_CORE.get().asItem(),
+				TFBlocks.ANTIBUILDER.get().asItem(), TFBlocks.STRONGHOLD_SHIELD.get().asItem(),
+				TFBlocks.LOCKED_VANISHING_BLOCK.get().asItem(), TFBlocks.BROWN_THORNS.get().asItem(),
+				TFBlocks.GREEN_THORNS.get().asItem(), TFBlocks.BURNT_THORNS.get().asItem(),
+				TFBlocks.PINK_FORCE_FIELD.get().asItem(), TFBlocks.ORANGE_FORCE_FIELD.get().asItem(),
+				TFBlocks.GREEN_FORCE_FIELD.get().asItem(), TFBlocks.BLUE_FORCE_FIELD.get().asItem(),
+				TFBlocks.VIOLET_FORCE_FIELD.get().asItem(), TFBlocks.FINAL_BOSS_BOSS_SPAWNER.get().asItem(),
+				TFBlocks.NAGA_BOSS_SPAWNER.get().asItem(), TFBlocks.LICH_BOSS_SPAWNER.get().asItem(),
+				TFBlocks.MINOSHROOM_BOSS_SPAWNER.get().asItem(), TFBlocks.HYDRA_BOSS_SPAWNER.get().asItem(),
+				TFBlocks.KNIGHT_PHANTOM_BOSS_SPAWNER.get().asItem(), TFBlocks.UR_GHAST_BOSS_SPAWNER.get().asItem(),
+				TFBlocks.ALPHA_YETI_BOSS_SPAWNER.get().asItem(), TFBlocks.SNOW_QUEEN_BOSS_SPAWNER.get().asItem());
+
+		getOrCreateTagBuilder(ItemTags.TRIMMABLE_ARMOR)
+				.add(TFItems.IRONWOOD_HELMET.get(), TFItems.IRONWOOD_CHESTPLATE.get(), TFItems.IRONWOOD_LEGGINGS.get(), TFItems.IRONWOOD_BOOTS.get())
+				.add(TFItems.STEELEAF_HELMET.get(), TFItems.STEELEAF_CHESTPLATE.get(), TFItems.STEELEAF_LEGGINGS.get(), TFItems.STEELEAF_BOOTS.get())
+				.add(TFItems.KNIGHTMETAL_HELMET.get(), TFItems.KNIGHTMETAL_CHESTPLATE.get(), TFItems.KNIGHTMETAL_LEGGINGS.get(), TFItems.KNIGHTMETAL_BOOTS.get())
+				.add(TFItems.ARCTIC_HELMET.get(), TFItems.ARCTIC_CHESTPLATE.get(), TFItems.ARCTIC_LEGGINGS.get(), TFItems.ARCTIC_BOOTS.get())
+				//due to yeti helmets being bigger than normal helmets trims won't work properly on it. If we ever decide to change the model we can add trim compatibility
+				.add(/*TFItems.YETI_HELMET.get(),*/ TFItems.YETI_CHESTPLATE.get(), TFItems.YETI_LEGGINGS.get(), TFItems.YETI_BOOTS.get())
+				.add(TFItems.FIERY_HELMET.get(), TFItems.FIERY_CHESTPLATE.get(), TFItems.FIERY_LEGGINGS.get(), TFItems.FIERY_BOOTS.get())
+				.add(TFItems.PHANTOM_HELMET.get(), TFItems.PHANTOM_CHESTPLATE.get(), TFItems.NAGA_CHESTPLATE.get(), TFItems.NAGA_LEGGINGS.get());
+
+		getOrCreateTagBuilder(ItemTags.TRIM_MATERIALS).add(TFItems.IRONWOOD_INGOT.get(), TFItems.STEELEAF_INGOT.get(), TFItems.KNIGHTMETAL_INGOT.get(), TFItems.NAGA_SCALE.get(), TFItems.CARMINITE.get(), TFItems.FIERY_INGOT.get());
 	}
 
 	@Override

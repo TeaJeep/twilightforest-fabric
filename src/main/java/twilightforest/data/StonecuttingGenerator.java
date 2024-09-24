@@ -5,7 +5,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -109,6 +108,7 @@ public class StonecuttingGenerator {
 		consumer.accept(stonecutting(Blocks.MANGROVE_LOG, TFBlocks.HOLLOW_VANGROVE_LOG_HORIZONTAL.get()));
 		consumer.accept(stonecutting(Blocks.STONE, TFBlocks.TWISTED_STONE.get()));
 		consumer.accept(stonecutting(Blocks.STONE, TFBlocks.BOLD_STONE_PILLAR.get()));
+		consumer.accept(stonecutting(TFBlocks.TWISTED_STONE.get(), TFBlocks.TWISTED_STONE_PILLAR.get()));
 
 		consumer.accept(stonecutting(TFBlocks.UNDERBRICK.get(), TFBlocks.UNDERBRICK_FLOOR.get()));
 	}

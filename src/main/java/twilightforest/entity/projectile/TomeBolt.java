@@ -12,12 +12,13 @@ import net.minecraft.world.entity.projectile.ItemSupplier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LecternBlock;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import twilightforest.init.TFDamageTypes;
-import twilightforest.init.TFEntities;
 
 public class TomeBolt extends TFThrowable implements ItemSupplier {
 
@@ -41,14 +42,13 @@ public class TomeBolt extends TFThrowable implements ItemSupplier {
 	}
 
 
-
 	@Environment(EnvType.CLIENT)
 	@Override
 	public void handleEntityEvent(byte id) {
 		if (id == 3) {
 			ParticleOptions particle = new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.PAPER));
 			for (int i = 0; i < 8; ++i) {
-				this.getLevel().addParticle(particle, false, this.getX(), this.getY(), this.getZ(), this.random.nextGaussian() * 0.05D, this.random.nextDouble() * 0.2D, this.random.nextGaussian() * 0.05D);
+				this.level().addParticle(particle, false, this.getX(), this.getY(), this.getZ(), this.random.nextGaussian() * 0.05D, this.random.nextDouble() * 0.2D, this.random.nextGaussian() * 0.05D);
 			}
 		} else {
 			super.handleEntityEvent(id);
@@ -59,9 +59,9 @@ public class TomeBolt extends TFThrowable implements ItemSupplier {
 	protected void onHitEntity(EntityHitResult result) {
 		super.onHitEntity(result);
 		if (result.getEntity() instanceof LivingEntity living) {
-			if (result.getEntity().hurt(TFDamageTypes.getIndirectEntityDamageSource(this.getLevel(), this.random.nextBoolean() ? TFDamageTypes.LOST_WORDS : TFDamageTypes.SCHOOLED, this.getOwner(), this), 3)) {
+			if (result.getEntity().hurt(TFDamageTypes.getIndirectEntityDamageSource(this.level(), this.random.nextBoolean() ? TFDamageTypes.LOST_WORDS : TFDamageTypes.SCHOOLED, this.getOwner(), this), 3)) {
 				// inflict move slowdown
-				int duration = this.getLevel().getDifficulty() == Difficulty.EASY ? 2 : this.getLevel().getDifficulty() == Difficulty.NORMAL ? 6 : 8;
+				int duration = this.level().getDifficulty() == Difficulty.EASY ? 2 : this.level().getDifficulty() == Difficulty.NORMAL ? 6 : 8;
 				living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration * 20, 1));
 			}
 		}
@@ -69,9 +69,14 @@ public class TomeBolt extends TFThrowable implements ItemSupplier {
 
 	@Override
 	protected void onHit(HitResult result) {
+		if (this.getOwner() != null && result instanceof BlockHitResult blockHitResult &&
+				this.getOwner().blockPosition().equals(blockHitResult.getBlockPos()) &&
+				this.level().getBlockState(blockHitResult.getBlockPos()).getBlock() instanceof LecternBlock) {
+			return;
+		}
 		super.onHit(result);
-		if (!this.getLevel().isClientSide()) {
-			this.getLevel().broadcastEntityEvent(this, (byte) 3);
+		if (!this.level().isClientSide()) {
+			this.level().broadcastEntityEvent(this, (byte) 3);
 			this.discard();
 		}
 	}

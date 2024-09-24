@@ -19,7 +19,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import me.alphamode.forgetags.Tags;
+
+import io.github.fabricators_of_create.porting_lib.tags.Tags;
 import twilightforest.block.CinderFurnaceBlock;
 import twilightforest.init.TFBlocks;
 
@@ -197,7 +198,7 @@ public class CinderFurnaceBlockEntity extends FurnaceBlockEntity {
 			} else {
 				ItemStack itemstack1 = this.items.get(2);
 				if (itemstack1.isEmpty()) return true;
-				if (!itemstack1.sameItem(itemstack)) return false;
+				if (!itemstack1.is(itemstack.getItem())) return false;
 				int result = itemstack1.getCount() + getMaxOutputStacks(items.get(0), itemstack); // TF - account for multiplying
 				return result <= this.getMaxStackSize() && result <= itemstack1.getMaxStackSize(); // Forge fix: make furnace respect stack sizes in furnace recipes
 			}

@@ -1,12 +1,16 @@
 package twilightforest.entity.monster;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,20 +27,28 @@ import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import twilightforest.entity.projectile.TomeBolt;
 import twilightforest.init.TFEntities;
 import twilightforest.init.TFSounds;
 import twilightforest.loot.TFLootTables;
 
-import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 public class DeathTome extends Monster implements RangedAttackMob {
+	private static final EntityDataAccessor<Boolean> DATA_LECTERN = SynchedEntityData.defineId(DeathTome.class, EntityDataSerializers.BOOLEAN);
+
+	public float flip;
+	public float oFlip;
+	public float flipT;
+	public float flipA;
 
 	public DeathTome(EntityType<? extends DeathTome> type, Level world) {
 		super(type, world);
@@ -63,6 +75,20 @@ public class DeathTome extends Monster implements RangedAttackMob {
 	}
 
 	@Override
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(DATA_LECTERN, false);
+	}
+
+	public void setOnLectern(boolean hidden) {
+		this.entityData.set(DATA_LECTERN, hidden);
+	}
+
+	public boolean isOnLectern() {
+		return this.entityData.get(DATA_LECTERN);
+	}
+
+	@Override
 	protected PathNavigation createNavigation(Level level) {
 		FlyingPathNavigation flyingpathnavigation = new FlyingPathNavigation(this, level) {
 			public boolean isStableDestination(BlockPos pos) {
@@ -76,32 +102,88 @@ public class DeathTome extends Monster implements RangedAttackMob {
 	}
 
 	@Override
+	public boolean isPersistenceRequired() {
+		return super.isPersistenceRequired() || this.isOnLectern();
+	}
+
+	@Override
 	public void aiStep() {
+		if (this.isOnLectern()) {
+			BlockState state = this.level().getBlockState(this.blockPosition());
+			if (state.getBlock() instanceof LecternBlock) {
+				Direction direction = state.getValue(HorizontalDirectionalBlock.FACING);
+				this.yRotO = direction.toYRot();
+				this.setYRot(this.yRotO);
+				this.yBodyRot = this.yRotO;
+				this.yBodyRotO = yRotO;
+				this.yHeadRot = this.yRotO;
+				this.yHeadRotO = this.yRotO;
+
+				if (!this.level().isClientSide()) this.targetSelector.tick(); // Tick target selector, so that our Tome can find an enemy to ambush
+
+				if (this.getTarget() != null && this.distanceToSqr(this.getTarget()) < 20.0D) {
+					this.setOnLectern(false);
+					this.jumpControl.jump();
+					this.performRangedAttack(this.getTarget(), 1.0F);
+				}
+
+				return;
+			} else {
+				this.setOnLectern(false);
+			}
+		}
+
 		super.aiStep();
 
 		Vec3 vel = this.getDeltaMovement();
-		if (!this.isOnGround() && vel.y() < 0.0D) {
+		if (!this.onGround() && vel.y() < 0.0D) {
 			this.setDeltaMovement(vel.multiply(1.0D, 0.6D, 1.0D));
 		}
 
 		for (int i = 0; i < 1; ++i) {
-			this.getLevel().addParticle(ParticleTypes.ENCHANT, this.getX() + (this.getRandom().nextDouble() - 0.5D) * this.getBbWidth(), this.getY() + this.getRandom().nextDouble() * (this.getBbHeight() - 0.75D) + 0.5D, this.getZ() + (this.getRandom().nextDouble() - 0.5D) * this.getBbWidth(),
+			this.level().addParticle(ParticleTypes.ENCHANT, this.getX() + (this.getRandom().nextDouble() - 0.5D) * this.getBbWidth(), this.getY() + this.getRandom().nextDouble() * (this.getBbHeight() - 0.75D) + 0.5D, this.getZ() + (this.getRandom().nextDouble() - 0.5D) * this.getBbWidth(),
 					0.0D, 0.5D, 0.0D);
 		}
 	}
 
 	@Override
+	public void tick() {
+		if (this.isOnLectern()) this.ambientSoundTime = -1; // Don't play ambient sounds if we're trying to be stealthy
+		if (this.level().isClientSide) {
+			float f1 = this.flipT;
+
+			if (this.random.nextInt(this.isOnLectern() ? 120 : 30) == 0) {
+				do this.flipT += (float) (this.random.nextInt(4) - this.random.nextInt(4));
+				while (f1 == this.flipT);
+			}
+
+			this.oFlip = this.flip;
+			float f = (this.flipT - this.flip) * 0.4F;
+			f = Mth.clamp(f, -0.2F, 0.2F);
+			this.flipA += (f - this.flipA) * 0.9F;
+			this.flip += this.flipA;
+		}
+
+		super.tick();
+	}
+
+	@Override
 	public boolean hurt(DamageSource src, float damage) {
+		if (this.isOnLectern()) {
+			this.jumpControl.jump();
+			this.setOnLectern(false);
+		}
+
 		if (src.is(DamageTypeTags.IS_FIRE)) {
 			damage *= 2;
 		}
 
 		if (super.hurt(src, damage)) {
 			if (damage > 0) {
-				if (!this.getLevel().isClientSide()) {
-					LootContext ctx = createLootContext(true, src).create(LootContextParamSets.ENTITY);
+				if (!this.level().isClientSide()) {
+					LootParams ctx = TFLootTables.createLootParams(this, true, src).create(LootContextParamSets.ENTITY);
 
-					Objects.requireNonNull(this.getLevel().getServer()).getLootTables().get(TFLootTables.DEATH_TOME_HURT).getRandomItems(ctx, s -> spawnAtLocation(s, 1.0F));
+					Objects.requireNonNull(this.level().getServer()).getLootData().getLootTable(TFLootTables.DEATH_TOME_HURT).getRandomItems(ctx, s -> spawnAtLocation(s, 1.0F));
 				}
 			}
 			return true;
@@ -118,28 +200,40 @@ public class DeathTome extends Monster implements RangedAttackMob {
 	@Nullable
 	@Override
 	protected SoundEvent getAmbientSound() {
-		return TFSounds.TOME_AMBIENT.get();
+		return TFSounds.DEATH_TOME_AMBIENT.get();
 	}
 
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
-		return TFSounds.TOME_HURT.get();
+		return TFSounds.DEATH_TOME_HURT.get();
 	}
 
 	@Override
 	protected SoundEvent getDeathSound() {
-		return TFSounds.TOME_DEATH.get();
+		return TFSounds.DEATH_TOME_DEATH.get();
 	}
 
 	@Override
 	public void performRangedAttack(LivingEntity target, float distanceFactor) {
-		ThrowableProjectile projectile = new TomeBolt(TFEntities.TOME_BOLT.get(), this.getLevel(), this);
+		ThrowableProjectile projectile = new TomeBolt(TFEntities.TOME_BOLT.get(), this.level(), this);
 		double tx = target.getX() - this.getX();
 		double ty = target.getY() + target.getEyeHeight() - 1.1D - projectile.getY();
 		double tz = target.getZ() - this.getZ();
 		float heightOffset = Mth.sqrt((float) (tx * tx + tz * tz)) * 0.2F;
 		projectile.shoot(tx, ty + heightOffset, tz, 0.6F, 6.0F);
 		this.gameEvent(GameEvent.PROJECTILE_SHOOT);
-		this.getLevel().addFreshEntity(projectile);
+		this.level().addFreshEntity(projectile);
+	}
+
+	@Override
+	public void readAdditionalSaveData(CompoundTag tag) {
+		super.readAdditionalSaveData(tag);
+		this.entityData.set(DATA_LECTERN, tag.getBoolean("on_lectern"));
+	}
+
+	@Override
+	public void addAdditionalSaveData(CompoundTag tag) {
+		super.addAdditionalSaveData(tag);
+		tag.putBoolean("on_lectern", this.entityData.get(DATA_LECTERN));
 	}
 }

@@ -97,6 +97,11 @@
         },
         {
           "type": "minecraft:item",
+          "conditions": [
+            {
+              "condition": "twilightforest:uncrafting_table_enabled"
+            }
+          ],
           "name": "twilightforest:uncrafting_table"
         },
         {
@@ -106,5 +111,6 @@
       ],
       "rolls": 1.0
     }
-  ]
+  ],
+  "random_sequence": "twilightforest:chests/graveyard"
 }

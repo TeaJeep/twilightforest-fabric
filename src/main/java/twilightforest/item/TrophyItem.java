@@ -8,15 +8,16 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
-public class TrophyItem extends StandingAndWallBlockItem {
+public class TrophyItem extends StandingAndWallBlockItem implements Equipable {
 
 	public TrophyItem(Block floorBlock, Block wallBlock, FabricItemSettings properties) {
-		super(floorBlock, wallBlock, properties.equipmentSlot(stack -> EquipmentSlot.HEAD), Direction.DOWN);
+		super(floorBlock, wallBlock, properties, Direction.DOWN);
 		CuriosCharmItem.setupTrinket(this);
 	}
 
@@ -35,5 +36,10 @@ public class TrophyItem extends StandingAndWallBlockItem {
 		} else {
 			return InteractionResultHolder.fail(itemstack);
 		}
+	}
+
+	@Override
+	public EquipmentSlot getEquipmentSlot() {
+		return EquipmentSlot.HEAD;
 	}
 }

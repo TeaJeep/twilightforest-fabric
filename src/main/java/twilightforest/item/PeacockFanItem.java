@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.FlowerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import twilightforest.block.AbstractLightableBlock;
+import twilightforest.block.LightableBlock;
 import twilightforest.block.AbstractSkullCandleBlock;
 import twilightforest.capabilities.CapabilityList;
 import twilightforest.capabilities.fan.FeatherFanFallCapability;
@@ -42,7 +42,7 @@ public class PeacockFanItem extends Item {
 	public InteractionResultHolder<ItemStack> use(Level level, Player player, @Nonnull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 
-		boolean flag = !player.isOnGround() && !player.isSwimming() && !CapabilityList.FEATHER_FAN_FALLING.maybeGet(player).map(FeatherFanFallCapability::getFalling).orElse(true);
+		boolean flag = !player.onGround() && !player.isSwimming() && !CapabilityList.FEATHER_FAN_FALLING.maybeGet(player).map(FeatherFanFallCapability::getFalling).orElse(true);
 
 		if (!level.isClientSide()) {
 			int fanned = this.doFan(level, player);
@@ -77,7 +77,7 @@ public class PeacockFanItem extends Item {
 							lookVec.x(), lookVec.y(), lookVec.z());
 				}
 			}
-			player.playSound(TFSounds.FAN_WOOSH.get(), 1.0F + level.getRandom().nextFloat(), level.getRandom().nextFloat() * 0.7F + 0.3F);
+			player.playSound(TFSounds.FAN_WHOOSH.get(), 1.0F + level.getRandom().nextFloat(), level.getRandom().nextFloat() * 0.7F + 0.3F);
 			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
 		}
 
@@ -153,8 +153,8 @@ public class PeacockFanItem extends Item {
 			}
 		} else if (state.getBlock() instanceof AbstractCandleBlock && state.getValue(AbstractCandleBlock.LIT)) {
 			AbstractCandleBlock.extinguish(null, state, level, pos);
-		} else if (state.getBlock() instanceof AbstractSkullCandleBlock && state.getValue(AbstractSkullCandleBlock.LIGHTING) != AbstractLightableBlock.Lighting.NONE) {
-			AbstractSkullCandleBlock.extinguish(null, state, level, pos);
+		} else if (state.getBlock() instanceof LightableBlock lightable && state.getValue(LightableBlock.LIGHTING) != LightableBlock.Lighting.NONE) {
+			lightable.extinguish(null, state, level, pos);
 		}
 
 		return cost;

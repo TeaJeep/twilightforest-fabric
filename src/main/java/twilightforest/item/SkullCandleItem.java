@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.TooltipFlag;
@@ -22,14 +23,15 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.jetbrains.annotations.Nullable;
 import twilightforest.block.AbstractSkullCandleBlock;
 import twilightforest.block.entity.SkullCandleBlockEntity;
+import twilightforest.client.ISTER;
 import twilightforest.init.TFBlocks;
 
 import java.util.List;
 
-public class SkullCandleItem extends StandingAndWallBlockItem {
+public class SkullCandleItem extends StandingAndWallBlockItem implements Equipable {
 
 	public SkullCandleItem(AbstractSkullCandleBlock floor, AbstractSkullCandleBlock wall, FabricItemSettings properties) {
-		super(floor, wall, properties.equipmentSlot(stack -> EquipmentSlot.HEAD), Direction.DOWN);
+		super(floor, wall, properties, Direction.DOWN);
 		CuriosCharmItem.setupTrinket(this);
 	}
 
@@ -101,5 +103,10 @@ public class SkullCandleItem extends StandingAndWallBlockItem {
 		} else {
 			return InteractionResultHolder.fail(itemstack);
 		}
+	}
+
+	@Override
+	public EquipmentSlot getEquipmentSlot() {
+		return EquipmentSlot.HEAD;
 	}
 }

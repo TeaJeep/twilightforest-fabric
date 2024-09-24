@@ -161,6 +161,11 @@
         },
         {
           "type": "minecraft:item",
+          "conditions": [
+            {
+              "condition": "twilightforest:uncrafting_table_enabled"
+            }
+          ],
           "name": "twilightforest:uncrafting_table",
           "weight": 75
         },
@@ -203,5 +208,6 @@
       ],
       "rolls": 1.0
     }
-  ]
+  ],
+  "random_sequence": "twilightforest:chests/hill_2"
 }

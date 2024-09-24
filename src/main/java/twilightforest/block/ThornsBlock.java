@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -54,11 +53,11 @@ public class ThornsBlock extends ConnectableRotatedPillarBlock implements Simple
 	}
 
 	@Override
-	public boolean canConnectTo(BlockState state, boolean solidSide) {
-		return (state.getBlock() instanceof ThornsBlock
-						|| state.getBlock().equals(TFBlocks.THORN_ROSE.get())
-						|| state.getBlock().equals(TFBlocks.THORN_LEAVES.get())
-						|| state.getBlock().equals(TFBlocks.WEATHERED_DEADROCK.get()));
+	public boolean canConnectTo(Direction.Axis thisAxis, Direction facing, BlockState facingState, boolean solidSide) {
+		return (facingState.getBlock() instanceof ThornsBlock
+						|| facingState.getBlock().equals(TFBlocks.THORN_ROSE.get())
+						|| facingState.getBlock().equals(TFBlocks.THORN_LEAVES.get())
+						|| facingState.getBlock().equals(TFBlocks.WEATHERED_DEADROCK.get()));
 	}
 
 	@Override
@@ -111,12 +110,6 @@ public class ThornsBlock extends ConnectableRotatedPillarBlock implements Simple
 		}
 	}
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.BLOCK;
-	}
-
 	/**
 	 * Grow thorns out of both the ends, then maybe in another direction too
 	 */
@@ -167,13 +160,14 @@ public class ThornsBlock extends ConnectableRotatedPillarBlock implements Simple
 
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
+		Direction.Axis axis = context.getClickedFace().getAxis();
 		BlockState state = this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
 		BlockPos pos = context.getClickedPos();
 
 		for (Direction direction : Direction.values()) {
 			BlockPos relativePos = pos.relative(direction);
 			BlockState relativeState = context.getLevel().getBlockState(relativePos);
-			state = state.setValue(PipeBlock.PROPERTY_BY_DIRECTION.get(direction), this.canConnectTo(relativeState, true));
+			state = state.setValue(PipeBlock.PROPERTY_BY_DIRECTION.get(direction), this.canConnectTo(axis, direction, relativeState, true));
 		}
 
 		return state.setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER);

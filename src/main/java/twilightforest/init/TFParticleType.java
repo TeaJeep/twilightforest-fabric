@@ -13,7 +13,6 @@ import net.minecraft.core.registries.Registries;
 import twilightforest.TwilightForestMod;
 import twilightforest.client.particle.*;
 import twilightforest.client.particle.data.LeafParticleData;
-import twilightforest.client.particle.data.PinnedFireflyData;
 
 public class TFParticleType {
 
@@ -33,14 +32,8 @@ public class TFParticleType {
 	public static final RegistryObject<SimpleParticleType> HUGE_SMOKE = PARTICLE_TYPES.register("huge_smoke", () -> new SimpleParticleType(false));
 	public static final RegistryObject<SimpleParticleType> FIREFLY = PARTICLE_TYPES.register("firefly", () -> new SimpleParticleType(false));
 	public static final RegistryObject<SimpleParticleType> WANDERING_FIREFLY = PARTICLE_TYPES.register("wandering_firefly", () -> new SimpleParticleType(false));
-	public static final RegistryObject<SimpleParticleType> JAR_WANDERING_FIREFLY = PARTICLE_TYPES.register("jar_wandering_firefly", () -> new SimpleParticleType(false));
-	public static final RegistryObject<ParticleType<PinnedFireflyData>> FIREFLY_PINNED = PARTICLE_TYPES.register("firefly_pinned", () -> new ParticleType<PinnedFireflyData>(false, new PinnedFireflyData.Deserializer()) {
-		@Override
-		public Codec<PinnedFireflyData> codec() {
-			return PinnedFireflyData.codecFirefly();
-		}
-	});
-	public static final RegistryObject<ParticleType<LeafParticleData>> FALLEN_LEAF = PARTICLE_TYPES.register("fallen_leaf", () -> new ParticleType<LeafParticleData>(false, new LeafParticleData.Deserializer()) {
+	public static final RegistryObject<SimpleParticleType> PARTICLE_SPAWNER_FIREFLY = PARTICLE_TYPES.register("particle_spawner_firefly", () -> new SimpleParticleType(false));
+	public static final RegistryObject<ParticleType<LeafParticleData>> FALLEN_LEAF = PARTICLE_TYPES.register("fallen_leaf", () -> new ParticleType<>(false, new LeafParticleData.Deserializer()) {
 		@Override
 		public Codec<LeafParticleData> codec() {
 			return LeafParticleData.codecLeaf();
@@ -48,6 +41,7 @@ public class TFParticleType {
 	});
 	public static final RegistryObject<SimpleParticleType> OMINOUS_FLAME = PARTICLE_TYPES.register("ominous_flame", () -> new SimpleParticleType(false));
 	public static final RegistryObject<SimpleParticleType> SORTING_PARTICLE = PARTICLE_TYPES.register("sorting_particle", () -> new SimpleParticleType(false));
+	public static final RegistryObject<SimpleParticleType> CLOUD_PUFF = PARTICLE_TYPES.register("cloud_puff", () -> new SimpleParticleType(false));
 
 	@Environment(EnvType.CLIENT)
 	public static void registerFactories() {
@@ -63,12 +57,13 @@ public class TFParticleType {
 		ParticleFactoryRegistry.getInstance().register(TFParticleType.ICE_BEAM.get(), IceBeamParticle.Factory::new);
 		ParticleFactoryRegistry.getInstance().register(TFParticleType.ANNIHILATE.get(), AnnihilateParticle.Factory::new);
 		ParticleFactoryRegistry.getInstance().register(TFParticleType.HUGE_SMOKE.get(), SmokeScaleParticle.Factory::new);
-		ParticleFactoryRegistry.getInstance().register(TFParticleType.FIREFLY.get(), FireflyParticle.Factory::new);
+		ParticleFactoryRegistry.getInstance().register(TFParticleType.FIREFLY.get(), FireflyParticle.StationaryProvider::new);
 		ParticleFactoryRegistry.getInstance().register(TFParticleType.WANDERING_FIREFLY.get(), WanderingFireflyParticle.Factory::new);
-		ParticleFactoryRegistry.getInstance().register(TFParticleType.JAR_WANDERING_FIREFLY.get(), WanderingFireflyParticle.FromJarFactory::new);
-		ParticleFactoryRegistry.getInstance().register(TFParticleType.FIREFLY_PINNED.get(), PinnedFireflyParticle.Factory::new);
+		ParticleFactoryRegistry.getInstance().register(TFParticleType.WANDERING_FIREFLY.get(), FireflyParticle.WanderingProvider::new);
+		ParticleFactoryRegistry.getInstance().register(TFParticleType.PARTICLE_SPAWNER_FIREFLY.get(), FireflyParticle.ParticleSpawnerProvider::new);
 		ParticleFactoryRegistry.getInstance().register(TFParticleType.FALLEN_LEAF.get(), LeafParticle.Factory::new);
 		ParticleFactoryRegistry.getInstance().register(TFParticleType.OMINOUS_FLAME.get(), FlameParticle.SmallFlameProvider::new);
 		ParticleFactoryRegistry.getInstance().register(TFParticleType.SORTING_PARTICLE.get(), SortingParticle.Factory::new);
+		ParticleFactoryRegistry.getInstance().register(TFParticleType.CLOUD_PUFF.get(), CloudPuffParticle.Factory::new);
 	}
 }

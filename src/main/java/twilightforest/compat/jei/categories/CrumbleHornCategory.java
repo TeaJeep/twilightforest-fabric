@@ -1,6 +1,5 @@
 package twilightforest.compat.jei.categories;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -10,6 +9,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -37,7 +37,7 @@ public class CrumbleHornCategory implements IRecipeCategory<CrumbleRecipe> {
 		this.background = helper.createDrawable(location, 0, 0, WIDTH, HEIGHT);
 		this.icon = helper.createDrawableIngredient(VanillaTypes.ITEM_STACK, TFItems.CRUMBLE_HORN.get().getDefaultInstance());
 		this.crumbleSlot = helper.createDrawable(location, 116, 0, 26, 26);
-		this.localizedName = Component.translatable("gui.crumble_horn_jei");
+		this.localizedName = Component.translatable("gui.twilightforest.crumble_horn_jei");
 	}
 
 	@Override
@@ -61,8 +61,8 @@ public class CrumbleHornCategory implements IRecipeCategory<CrumbleRecipe> {
 	}
 
 	@Override
-	public void draw(CrumbleRecipe recipe, IRecipeSlotsView recipeSlotsView, PoseStack stack, double mouseX, double mouseY) {
-		if (!recipe.result().isAir()) this.crumbleSlot.draw(stack, 76, 14);
+	public void draw(CrumbleRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
+		if (!recipe.result().isAir()) this.crumbleSlot.draw(graphics, 76, 14);
 	}
 
 	@Override

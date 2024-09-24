@@ -84,7 +84,7 @@ public class Yeti extends Monster implements IHostileMount {
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
-		this.entityData.define(ANGER_FLAG, false);
+		this.getEntityData().define(ANGER_FLAG, false);
 	}
 
 	@Override
@@ -114,13 +114,13 @@ public class Yeti extends Monster implements IHostileMount {
 	}
 
 	public boolean isAngry() {
-		return this.entityData.get(ANGER_FLAG);
+		return this.getEntityData().get(ANGER_FLAG);
 	}
 
 	public void setAngry(boolean anger) {
-		this.entityData.set(ANGER_FLAG, anger);
+		this.getEntityData().set(ANGER_FLAG, anger);
 
-		if (!this.getLevel().isClientSide()) {
+		if (!this.level().isClientSide()) {
 			if (anger) {
 				if (!Objects.requireNonNull(getAttribute(Attributes.FOLLOW_RANGE)).hasModifier(ANGRY_MODIFIER)) {
 					Objects.requireNonNull(this.getAttribute(Attributes.FOLLOW_RANGE)).addTransientModifier(ANGRY_MODIFIER);
@@ -147,9 +147,9 @@ public class Yeti extends Monster implements IHostileMount {
 	 * Put the player out in front of where we are
 	 */
 	@Override
-	public void positionRider(Entity passenger) {
+	public void positionRider(Entity passenger, Entity.MoveFunction callback) {
 		Vec3 riderPos = this.getRiderPosition(passenger);
-		passenger.setPos(riderPos.x(), riderPos.y(), riderPos.z());
+		callback.accept(passenger, riderPos.x(), riderPos.y(), riderPos.z());
 	}
 
 	/**
@@ -182,17 +182,19 @@ public class Yeti extends Monster implements IHostileMount {
 	}
 
 	public static boolean yetiSnowyForestSpawnHandler(EntityType<? extends Yeti> entityType, ServerLevelAccessor accessor, MobSpawnType reason, BlockPos pos, RandomSource random) {
-		Optional<ResourceKey<Biome>> key = accessor.getBiome(pos).unwrapKey();
-		if (Objects.equals(key, Optional.of(TFBiomes.SNOWY_FOREST))) {
-			return checkMobSpawnRules(entityType, accessor, reason, pos, random);
-		} else {
-			// normal EntityMob spawn check, checks light level
-			return normalYetiSpawnHandler(entityType, accessor, reason, pos, random);
+		if (accessor.getDifficulty() != Difficulty.PEACEFUL) {
+			if (accessor.getBiome(pos).is(TFBiomes.SNOWY_FOREST)) {
+				return checkMobSpawnRules(entityType, accessor, reason, pos, random);
+			} else {
+				// normal Mob spawn check, checks light level
+				return normalYetiSpawnHandler(entityType, accessor, reason, pos, random);
+			}
 		}
+		return false;
 	}
 
 	public static boolean normalYetiSpawnHandler(EntityType<? extends Monster> entity, ServerLevelAccessor accessor, MobSpawnType reason, BlockPos pos, RandomSource random) {
-		return accessor.getDifficulty() != Difficulty.PEACEFUL && isValidLightLevel(accessor, pos, random) && checkMobSpawnRules(entity, accessor, reason, pos, random);
+		return isValidLightLevel(accessor, pos, random) && checkMobSpawnRules(entity, accessor, reason, pos, random);
 	}
 
 	public static boolean isValidLightLevel(ServerLevelAccessor accessor, BlockPos blockPos, RandomSource random) {

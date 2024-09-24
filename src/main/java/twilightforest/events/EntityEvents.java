@@ -1,14 +1,21 @@
 package twilightforest.events;
 
 import com.mojang.authlib.GameProfile;
+import io.github.fabricators_of_create.porting_lib.entity.events.living.LivingEntityDamageEvents;
+import io.github.fabricators_of_create.porting_lib.entity.events.living.LivingEntityDamageEvents.HurtEvent;
+import io.github.fabricators_of_create.porting_lib.entity.events.living.LivingEntityEvents;
+import io.github.fabricators_of_create.porting_lib.entity.events.player.PlayerEvents;
 import io.github.fabricators_of_create.porting_lib.event.common.ItemCraftedCallback;
-import io.github.fabricators_of_create.porting_lib.event.common.LivingEntityEvents;
-import io.github.fabricators_of_create.porting_lib.event.common.ProjectileImpactCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.loader.api.FabricLoader;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -18,7 +25,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -41,10 +47,8 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import twilightforest.TFConfig;
-import twilightforest.block.AbstractLightableBlock;
-import twilightforest.block.AbstractSkullCandleBlock;
-import twilightforest.block.SkullCandleBlock;
-import twilightforest.block.WallSkullCandleBlock;
+import twilightforest.TwilightForestMod;
+import twilightforest.block.*;
 import twilightforest.block.entity.KeepsakeCasketBlockEntity;
 import twilightforest.block.entity.SkullCandleBlockEntity;
 import twilightforest.enchantment.ChillAuraEnchantment;
@@ -66,18 +70,29 @@ public class EntityEvents {
 
 	public static void init() {
 		ItemCraftedCallback.EVENT.register(EntityEvents::onCrafting);
-		LivingEntityEvents.HURT.register(EntityEvents::entityHurts);
+		LivingEntityDamageEvents.HURT.register(EntityEvents::entityHurts);
+		LivingEntityDamageEvents.HURT.register(EntityEvents::onLivingHurtEvent);
 		UseBlockCallback.EVENT.register(EntityEvents::createSkullCandle);
 		PlayerBlockBreakEvents.BEFORE.register(EntityEvents::onCasketBreak);
-		LivingEntityEvents.HURT.register(EntityEvents::onLivingHurtEvent);
-		ProjectileImpactCallback.EVENT.register(EntityEvents::onParryProjectile);
+		io.github.fabricators_of_create.porting_lib.entity.events.EntityEvents.PROJECTILE_IMPACT.register(EntityEvents::onParryProjectile);
+		PlayerEvents.ADVANCEMENT_GRANT.register(EntityEvents::alertPlayerCastleIsWIP);
+		LivingEntityEvents.TICK.register(EntityEvents::onLivingTickEvent);
+		LivingEntityEvents.JUMP.register(EntityEvents::onLivingJumpEvent);
 	}
 
-	public static float entityHurts(DamageSource source, LivingEntity living, float amount) {
+	public static void alertPlayerCastleIsWIP(Player player, Advancement advancement) {
+		if (advancement.getId().equals(TwilightForestMod.prefix("progression_end"))) {
+			player.sendSystemMessage(Component.translatable("gui.twilightforest.progression_end.message", Component.translatable("gui.twilightforest.progression_end.discord").withStyle(style -> style.withColor(ChatFormatting.BLUE).applyFormat(ChatFormatting.UNDERLINE).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/twilightforest")))));
+		}
+	}
+
+	public static void entityHurts(HurtEvent event) {
+		LivingEntity living = event.damaged;
+		DamageSource source = event.damageSource;
 		Entity trueSource = source.getEntity();
 
 		// fire react and chill aura
-		if (source.getEntity() != null && trueSource != null && amount > 0) {
+		if (source.getEntity() != null && trueSource != null && event.damageAmount > 0) {
 			int fireLevel = getGearCoverage(living, false) * 5;
 			int chillLevel = getGearCoverage(living, true);
 
@@ -97,11 +112,10 @@ public class EntityEvents {
 				living.invulnerableTime = 0;
 			}
 		}
-		return amount;
 	}
 
 	//if our casket is owned by someone and that player isnt the one breaking it, stop them
-	public static boolean onCasketBreak(Level world, Player player, BlockPos pos, BlockState state, /* Nullable */ BlockEntity te) {
+	public static boolean onCasketBreak(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity te) {
 		Block block = state.getBlock();
 		UUID checker;
 		if (block == TFBlocks.KEEPSAKE_CASKET.get()) {
@@ -128,20 +142,19 @@ public class EntityEvents {
 		}
 	}
 
-	public static float onLivingHurtEvent(DamageSource source, @Nullable LivingEntity living, float amount) {
-		AtomicReference<Float> netAmount = new AtomicReference<>(amount);
+	public static void onLivingHurtEvent(HurtEvent event) {
+		LivingEntity living = event.damaged;
 		if (living != null) {
 			Optional.ofNullable(living.getEffect(TFMobEffects.FROSTY.get())).ifPresent(mobEffectInstance -> {
-				if (source.is(DamageTypes.FREEZE)) {
-					netAmount.set(amount + (float)(mobEffectInstance.getAmplifier() / 2));
-				} else if (source.is(DamageTypeTags.IS_FIRE)) {
+				if (event.damageSource.is(DamageTypes.FREEZE)) {
+					event.damageAmount = event.damageAmount + (float)(mobEffectInstance.getAmplifier() / 2);
+				} else if (event.damageSource.is(DamageTypeTags.IS_FIRE)) {
 					living.removeEffect(TFMobEffects.FROSTY.get());
 					mobEffectInstance.amplifier -= 1;
 					if (mobEffectInstance.amplifier >= 0) living.addEffect(mobEffectInstance);
 				}
 			});
 		}
-		return netAmount.get();
 	}
 
 	// Parrying
@@ -205,6 +218,10 @@ public class EntityEvents {
 							if (wall) makeWallSkull(stack, pos, world, TFBlocks.CREEPER_WALL_SKULL_CANDLE.get());
 							else makeFloorSkull(stack, pos, world, TFBlocks.CREEPER_SKULL_CANDLE.get());
 						}
+						case PIGLIN -> {
+							if (wall) makeWallSkull(stack, pos, world, TFBlocks.PIGLIN_WALL_SKULL_CANDLE.get());
+							else makeFloorSkull(stack, pos, world, TFBlocks.PIGLIN_SKULL_CANDLE.get());
+						}
 						default -> {
 							return InteractionResult.PASS;
 						}
@@ -227,11 +244,11 @@ public class EntityEvents {
 			profile = skull.getOwnerProfile();
 		level.playSound(null, pos, SoundEvents.CANDLE_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
 		level.setBlockAndUpdate(pos, newBlock.defaultBlockState()
-				.setValue(AbstractSkullCandleBlock.LIGHTING, AbstractLightableBlock.Lighting.NONE)
+				.setValue(AbstractSkullCandleBlock.LIGHTING, LightableBlock.Lighting.NONE)
 				.setValue(SkullCandleBlock.ROTATION, level.getBlockState(pos).getValue(SkullBlock.ROTATION)));
 		level.setBlockEntity(new SkullCandleBlockEntity(pos,
 				newBlock.defaultBlockState()
-						.setValue(AbstractSkullCandleBlock.LIGHTING, AbstractLightableBlock.Lighting.NONE)
+						.setValue(AbstractSkullCandleBlock.LIGHTING, LightableBlock.Lighting.NONE)
 						.setValue(SkullCandleBlock.ROTATION, level.getBlockState(pos).getValue(SkullBlock.ROTATION)),
 				AbstractSkullCandleBlock.candleToCandleColor(stack.getItem()).getValue(), 1));
 		if (level.getBlockEntity(pos) instanceof SkullCandleBlockEntity sc) sc.setOwner(profile);
@@ -243,11 +260,11 @@ public class EntityEvents {
 			profile = skull.getOwnerProfile();
 		level.playSound(null, pos, SoundEvents.CANDLE_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
 		level.setBlockAndUpdate(pos, newBlock.defaultBlockState()
-				.setValue(AbstractSkullCandleBlock.LIGHTING, AbstractLightableBlock.Lighting.NONE)
+				.setValue(AbstractSkullCandleBlock.LIGHTING, LightableBlock.Lighting.NONE)
 				.setValue(WallSkullCandleBlock.FACING, level.getBlockState(pos).getValue(WallSkullBlock.FACING)));
 		level.setBlockEntity(new SkullCandleBlockEntity(pos,
 				newBlock.defaultBlockState()
-						.setValue(AbstractSkullCandleBlock.LIGHTING, AbstractLightableBlock.Lighting.NONE)
+						.setValue(AbstractSkullCandleBlock.LIGHTING, LightableBlock.Lighting.NONE)
 						.setValue(WallSkullCandleBlock.FACING, level.getBlockState(pos).getValue(WallSkullBlock.FACING)),
 				AbstractSkullCandleBlock.candleToCandleColor(stack.getItem()).getValue(), 1));
 		if (level.getBlockEntity(pos) instanceof SkullCandleBlockEntity sc) sc.setOwner(profile);
@@ -266,5 +283,22 @@ public class EntityEvents {
 		}
 
 		return amount;
+	}
+
+	public static void onLivingTickEvent(LivingEntity living) {
+		if (living != null && canSpawnCloudParticles(living)) {
+			CloudBlock.addEntityMovementParticles(living.level(), living.getOnPos(), living, false);
+		}
+	}
+
+	public static boolean canSpawnCloudParticles(LivingEntity living) {
+		if (living.getDeltaMovement().x == 0.0D && living.getDeltaMovement().z == 0.0D && living.getRandom().nextInt(20) != 0) return false;
+		return living.tickCount % 2 == 0 && !living.isSpectator() && living.level().getBlockState(living.getOnPos()).getBlock() instanceof CloudBlock;
+	}
+
+	public static void onLivingJumpEvent(LivingEntity living) {
+		if (living != null && living.level().isClientSide() && !living.isSpectator() && living.level().getBlockState(living.getOnPos()).getBlock() instanceof CloudBlock) {
+			for (int i = 0; i < 12; i++) CloudBlock.addEntityMovementParticles(living.level(), living.getOnPos(), living, true);
+		}
 	}
 }

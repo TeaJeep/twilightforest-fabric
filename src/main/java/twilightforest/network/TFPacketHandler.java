@@ -17,7 +17,6 @@ public class TFPacketHandler {
 		int id = 0;
 
 		CHANNEL.registerS2CPacket(AreaProtectionPacket.class, id++);
-		CHANNEL.registerS2CPacket(ChangeBiomePacket.class, id++);
 		CHANNEL.registerS2CPacket(CreateMovingCicadaSoundPacket.class, id++);
 		CHANNEL.registerS2CPacket(EnforceProgressionStatusPacket.class, id++);
 		CHANNEL.registerS2CPacket(MagicMapPacket.class, id++);
@@ -31,6 +30,7 @@ public class TFPacketHandler {
 		CHANNEL.registerS2CPacket(ThrowPlayerPacket.class, id++);
 		CHANNEL.registerC2SPacket(UncraftingGuiPacket.class, id++);
 		CHANNEL.registerS2CPacket(UpdateFeatherFanFallPacket.class, id++);
+		CHANNEL.registerC2SPacket(UpdateGamerulePacket.class, id++);
 		CHANNEL.registerS2CPacket(UpdateShieldPacket.class, id++);
 		CHANNEL.registerS2CPacket(UpdateTFMultipartPacket.class, id++);
 		CHANNEL.registerS2CPacket(UpdateThrownPacket.class, id++);

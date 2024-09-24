@@ -1,18 +1,14 @@
 package twilightforest.data.tags;
 
-import me.alphamode.forgetags.Tags;
+import io.github.fabricators_of_create.porting_lib.tags.Tags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.EntityTypeTagsProvider;
-import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
-import org.jetbrains.annotations.Nullable;
 import twilightforest.TwilightForestMod;
 import twilightforest.init.TFEntities;
 
@@ -114,18 +110,20 @@ public class EntityTagGenerator extends FabricTagProvider.EntityTypeTagProvider 
 
 		tag(LICH_POPPABLES).addTag(EntityTypeTags.SKELETONS).add(EntityType.ZOMBIE, EntityType.ENDERMAN, EntityType.SPIDER, EntityType.CREEPER, TFEntities.SWARM_SPIDER.get());
 
-		tag(LIFEDRAIN_DROPS_NO_FLESH).addTag(EntityTypeTags.SKELETONS).add(
+		tag(LIFEDRAIN_DROPS_NO_FLESH).addTag(EntityTypeTags.SKELETONS).addTag(EntityTypeTags.FROG_FOOD).add(
+				EntityType.BLAZE,
 				EntityType.IRON_GOLEM,
+				EntityType.PHANTOM,
 				EntityType.SHULKER,
 				EntityType.SKELETON_HORSE,
-				EntityType.SLIME,
 				EntityType.SNOW_GOLEM,
+				EntityType.VEX,
+				EntityType.WITHER,
 				TFEntities.CARMINITE_GOLEM.get(),
 				TFEntities.DEATH_TOME.get(),
 				TFEntities.ICE_CRYSTAL.get(),
 				TFEntities.KNIGHT_PHANTOM.get(),
 				TFEntities.LICH.get(),
-				TFEntities.MAZE_SLIME.get(),
 				TFEntities.MOSQUITO_SWARM.get(),
 				TFEntities.SNOW_GUARDIAN.get(),
 				TFEntities.STABLE_ICE_CORE.get(),

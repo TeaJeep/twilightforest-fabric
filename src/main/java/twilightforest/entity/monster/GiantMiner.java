@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import twilightforest.data.tags.BlockTagGenerator;
 import twilightforest.init.TFDamageTypes;
 import twilightforest.init.TFItems;
+import twilightforest.util.EntityUtil;
 
 import java.util.List;
 
@@ -63,6 +64,11 @@ public class GiantMiner extends Monster {
 				.add(Attributes.FOLLOW_RANGE, 40.0D);
 	}
 
+	@Override
+	public float getStepHeight() {
+		return 1.2F;
+	}
+
 	@Nullable
 	@Override
 	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData spawnDataIn, @Nullable CompoundTag dataTag) {
@@ -90,8 +96,7 @@ public class GiantMiner extends Monster {
 
 	@Override
 	public boolean doHurtTarget(Entity entity) {
-		entity.hurt(TFDamageTypes.getEntityDamageSource(this.getLevel(), TFDamageTypes.ANT, this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE));
-		return super.doHurtTarget(entity);
+		return EntityUtil.properlyApplyCustomDamageSource(this, entity, TFDamageTypes.getEntityDamageSource(this.level(), TFDamageTypes.ANT, this));
 	}
 
 	@Override

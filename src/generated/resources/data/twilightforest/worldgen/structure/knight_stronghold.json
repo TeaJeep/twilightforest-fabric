@@ -14,12 +14,12 @@
     "id": "minecraft:written_book",
     "tag": {
       "author": "twilightforest.book.author",
+      "generation": 3,
       "pages": [
         "{\"translate\":\"twilightforest.book.tfstronghold.1\"}",
         "{\"translate\":\"twilightforest.book.tfstronghold.2\"}",
         "{\"translate\":\"twilightforest.book.tfstronghold.3\"}",
-        "{\"translate\":\"twilightforest.book.tfstronghold.4\"}",
-        "{\"translate\":\"twilightforest.book.tfstronghold.5\"}"
+        "{\"translate\":\"twilightforest.book.tfstronghold.4\"}"
       ],
       "title": "twilightforest.book.tfstronghold",
       "twilightforest:book": 1
@@ -78,7 +78,40 @@
       }
     ]
   },
-  "spawn_overrides": {},
+  "spawn_overrides": {
+    "ambient": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "axolotls": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "creature": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "misc": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "monster": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "underground_water_creature": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "water_ambient": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "water_creature": {
+      "bounding_box": "full",
+      "spawns": []
+    }
+  },
   "step": "underground_structures",
   "terrain_adaptation": "bury",
   "water_spawns": []

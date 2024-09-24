@@ -1,15 +1,11 @@
 package twilightforest.data.helpers;
 
-import io.github.fabricators_of_create.porting_lib.crafting.PartialNBTIngredient;
-import me.alphamode.forgetags.Tags;
+import io.github.fabricators_of_create.porting_lib.tags.Tags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
@@ -22,6 +18,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+
+import net.fabricmc.fabric.api.recipe.v1.ingredient.DefaultCustomIngredients;
 import twilightforest.TwilightForestMod;
 import twilightforest.block.TFChestBlock;
 import twilightforest.data.tags.ItemTagGenerator;
@@ -35,20 +33,16 @@ public abstract class CraftingDataHelper extends FabricRecipeProvider {
 		super(output);
 	}
 
-	public final PartialNBTIngredient scepter(Item scepter) {
-		return PartialNBTIngredient.of(scepter, Util.make(() -> {
-			CompoundTag nbt = new CompoundTag();
-			nbt.putInt(ItemStack.TAG_DAMAGE, scepter.getMaxDamage());
-			return nbt;
-		}));
+	public final Ingredient scepter(Item scepter) {
+		CompoundTag nbt = new CompoundTag();
+		nbt.putInt(ItemStack.TAG_DAMAGE, scepter.getMaxDamage());
+		return DefaultCustomIngredients.nbt(Ingredient.of(scepter), nbt, false);
 	}
 
-	public final PartialNBTIngredient potion(Potion potion) {
-		return PartialNBTIngredient.of(Items.POTION, Util.make(() -> {
-			CompoundTag nbt = new CompoundTag();
-			nbt.putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
-			return nbt;
-		}));
+	public final Ingredient potion(Potion potion) {
+		CompoundTag nbt = new CompoundTag();
+		nbt.putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+		return DefaultCustomIngredients.nbt(Ingredient.of(Items.POTION), nbt, false);
 	}
 
 	protected final void charmRecipe(Consumer<FinishedRecipe> consumer, String name, Supplier<? extends Item> result, Supplier<? extends Item> item) {
@@ -212,10 +206,10 @@ public abstract class CraftingDataHelper extends FabricRecipeProvider {
 				.save(consumer, locWood(name + "_gate"));
 	}
 
-	protected final void planksBlock(Consumer<FinishedRecipe> consumer, String name, Supplier<? extends Block> result, Supplier<? extends Block> material) {
+	protected final void planksBlock(Consumer<FinishedRecipe> consumer, String name, Supplier<? extends Block> result, TagKey<Item> material) {
 		ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, result.get(), 4)
-				.requires(material.get())
-				.unlockedBy("has_item", has(material.get()))
+				.requires(material)
+				.unlockedBy("has_item", has(material))
 				.save(consumer, locWood(name + "_planks"));
 	}
 
@@ -270,7 +264,7 @@ public abstract class CraftingDataHelper extends FabricRecipeProvider {
 				.save(consumer, locWood(name + "_stripped_wood"));
 	}
 
-	protected final void signBlock(Consumer<FinishedRecipe> consumer, String name, Supplier<? extends Block> result, Supplier<? extends Block> material) {
+	protected final void signBlock(Consumer<FinishedRecipe> consumer, String name, Supplier<? extends Item> result, Supplier<? extends Block> material) {
 		ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, result.get(), 3)
 				.pattern("###")
 				.pattern("###")
@@ -278,7 +272,18 @@ public abstract class CraftingDataHelper extends FabricRecipeProvider {
 				.define('#', material.get())
 				.define('-', Tags.Items.RODS_WOODEN)
 				.unlockedBy("has_item", has(material.get()))
-				.save(consumer, locWood(name + "_wood"));
+				.save(consumer, locWood(name + "_sign"));
+	}
+
+	protected final void hangingSignBlock(Consumer<FinishedRecipe> consumer, String name, Supplier<? extends Item> result, Supplier<? extends Block> material) {
+		ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, result.get(), 6)
+				.pattern("| |")
+				.pattern("###")
+				.pattern("###")
+				.define('#', material.get())
+				.define('|', Items.CHAIN)
+				.unlockedBy("has_item", has(material.get()))
+				.save(consumer, locWood(name + "_hanging_sign"));
 	}
 
 	protected final void banisterBlock(Consumer<FinishedRecipe> consumer, String name, Supplier<? extends Block> result, Supplier<? extends Block> material) {

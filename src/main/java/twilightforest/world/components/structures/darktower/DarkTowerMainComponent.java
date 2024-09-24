@@ -1,6 +1,5 @@
 package twilightforest.world.components.structures.darktower;
 
-import me.alphamode.forgetags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,6 +27,8 @@ import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+
+import io.github.fabricators_of_create.porting_lib.tags.TagHelper;
 import twilightforest.TwilightForestMod;
 import twilightforest.init.TFBlocks;
 import twilightforest.data.tags.BlockTagGenerator;
@@ -442,7 +443,6 @@ public class DarkTowerMainComponent extends DarkTowerWingComponent {
 	/**
 	 * Make a single three quarter floor
 	 *
-	 * @param isTowerTopFloor
 	 */
 	protected void makeThreeQuarterFloor(WorldGenLevel world, BoundingBox sbb, Rotation rotation, int y, boolean isBottom, boolean isTowerTopFloor) {
 		int half = size / 2;
@@ -662,7 +662,7 @@ public class DarkTowerMainComponent extends DarkTowerWingComponent {
 						setBlockStateRotated(world, deco.fenceState, x, y + py, z, rotation, sbb);
 					}
 
-					if (x != size / 2 && x != size - 2 && z != size - 2) {
+					if (x != (size / 2) + 2 && x != size - 1 && z != size - 1) {
 						int ay = decoRNG.nextInt(4) + 1;
 						setBlockStateRotated(world, AIR, x, y + ay, z, rotation, sbb);
 
@@ -1140,7 +1140,6 @@ public class DarkTowerMainComponent extends DarkTowerWingComponent {
 	/**
 	 * Make a lattice of log blocks
 	 *
-	 * @param top
 	 */
 	protected void makeTimberBeams(WorldGenLevel world, RandomSource rand, BoundingBox sbb, Rotation rotation, int y, boolean isBottom, boolean isTop, int top) {
 		BlockState beamID = TFBlocks.TWILIGHT_OAK_LOG.get().defaultBlockState();
